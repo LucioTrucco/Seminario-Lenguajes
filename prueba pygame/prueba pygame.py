@@ -2,6 +2,7 @@ import pygame
 import sys
 import pygame.sprite as sprite
 
+print "asd"
 theClock = pygame.time.Clock()
 
 background = pygame.image.load('background.gif')
