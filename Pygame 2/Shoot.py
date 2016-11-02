@@ -142,6 +142,32 @@ class Bullet (pygame.sprite.Sprite):
                 if self.rect.bottom<0:
                         self.kill()
 
+class Explosion (pygame.sprite.Sprite):
+    def __init__ (self,center, size):
+        pygame.sprite.Sprite.__init__(self)
+        self.size = size
+        self.image = explosion_anim[self.size][0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 50
+
+
+    def update (self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(explosion_anim[self.size]):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = explosion_anim [self.size][self.frame]
+                self.rectr = self.image.get_rect()
+                self.rect.center = center
+
+
 # Cargo los graficos del juego
 background = pygame.image.load(path.join(img_dir,"purple.png")).convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
@@ -152,6 +178,18 @@ meteor_images = []
 meteor_list =['meteorBrown_med1.png','Meteo2.png','Meteo3.png','Meteo4.png']
 for img in meteor_list:
         meteor_images.append(pygame.image.load(path.join(img_dir,img)).convert())
+
+explosion_anim = {}
+explosion_anim['lg'] = []
+explosion_anim['sm'] = []
+for i in range(9):
+    filename = 'regularExplosion0{}.png'.format(i)
+    img = pygame.image.load(path.join(img_dir, filename)).convert()
+    img.set_colorkey(BLACK)
+    img_lg = pygame.transform.scale(img, (75 , 75))
+    explosion_anim['lg'].append(img_lg)
+    img_sm = pygame.transform.scale(img, (32, 32))
+    explosion_anim['sm'].append(img_sm)
 
 # Cargo los sonidos del juego
 shoot_sound = pygame.mixer.Sound(path.join(snd_dir, 'Disparo_copado.wav'))
@@ -173,10 +211,10 @@ score = 0
 
 pygame.mixer.music.play(-1)
 
-# Game loop
+# Loop de juego
 running = True
 while running:
-    # keep loop running at the right speed
+    # Mantengo el juego a una velocidad
     clock.tick(FPS)
     # Process input (events)
     for event in pygame.event.get():
@@ -186,19 +224,23 @@ while running:
       
     # Update
     all_sprites.update()
-    # check to see if bullet hit mob
+    # Ver si la bala rompe el meteorito
     hits = pygame.sprite.groupcollide(mobs,bullets, True, True)
     for hit in hits:
         score += 50 - hit.radius
         explosion_sound.play()
+        expl = Explosion(hit.rect.center, 'lg')
+        all_sprites.add(expl)
         newmob()
 
 
-    # check to see if a mob hit the player
+    # Veo si el meteorito golpea la nave
     hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
     for hit in hits:
         player.shield -= hit.radius
         newmob()
+        expl = Explosion(hit.rect.center, 'sm')
+        all_sprites.add(expl)
         if player.shield <= 0:
             running = False
 
