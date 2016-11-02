@@ -24,6 +24,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Shooter")
 clock = pygame.time.Clock()
 
+
+#Defino mi fuente para el SCORE
 font_name = pygame.font.match_font('Arial')
 def draw_text (surf,text,size,x,y):
         font = pygame.font.Font(font_name,size)
@@ -32,7 +34,21 @@ def draw_text (surf,text,size,x,y):
         text_rect.midtop = (x,y)
         surf.blit  (text_surface, text_rect)
 
+def newmob():
+    m = Mob()
+    all_sprites.add(m)
+    mobs.add(m)
 
+def draw_shield_bar (surf,x,y,pct):
+    if pct < 0:
+        pct = 0
+    BAR_LARGO = 100
+    BAR_ALTO = 10
+    fill = (pct / 100.0) * BAR_LARGO
+    outline_rect = pygame.Rect( x, y, BAR_LARGO, BAR_ALTO)
+    fill_rect = pygame.Rect(x,y,fill, BAR_ALTO)
+    pygame.draw.rect(surf, GREEN, fill_rect)
+    pygame.draw.rect (surf,WHITE, outline_rect, 2)
 
 class Player(pygame.sprite.Sprite):
         def __init__(self):
@@ -45,6 +61,9 @@ class Player(pygame.sprite.Sprite):
                 self.rect.centerx = WIDTH / 2
                 self.rect.bottom = HEIGHT - 10
                 self.speedx = 0
+                self.shield = 100
+                self.shoot_delay = 250
+                self.last_shot = pygame.time.get_ticks()
 
         def update(self):
                 self.speedx = 0
@@ -58,12 +77,17 @@ class Player(pygame.sprite.Sprite):
                         self.rect.right = WIDTH
                 if self.rect.left < 0:
                         self.rect.left = 0
+                if keystate[pygame.K_SPACE]:
+                    self.shoot()
 
         def shoot(self):
-                bullet = Bullet(self.rect.centerx, self.rect.top)
-                all_sprites.add(bullet)
-                bullets.add(bullet)
-                shoot_sound.play()
+                now = pygame.time.get_ticks()
+                if now - self.last_shot > self.shoot_delay:
+                    self.last_shot = now
+                    bullet = Bullet(self.rect.centerx, self.rect.top)
+                    all_sprites.add(bullet)
+                    bullets.add(bullet)
+                    shoot_sound.play()
 
 class Mob (pygame.sprite.Sprite):
         def __init__(self):
@@ -105,7 +129,7 @@ class Mob (pygame.sprite.Sprite):
 class Bullet (pygame.sprite.Sprite):
         def __init__(self, x, y):
                 pygame.sprite.Sprite.__init__(self)
-                self.image = pygame.transform.scale(bullet_img,(8,15))
+                self.image = bullet_img
                 self.image.set_colorkey(BLACK)
                 self.rect = self.image.get_rect()
                 self.rect.bottom = y
@@ -144,9 +168,7 @@ player = Player()
 all_sprites.add(player)
 
 for i in range (8):
-        m = Mob()
-        all_sprites.add(m)
-        mobs.add(m)
+        newmob()
 score = 0
 
 pygame.mixer.music.play(-1)
@@ -161,9 +183,7 @@ while running:
         # check for closing window
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                        player.shoot()
+      
     # Update
     all_sprites.update()
     # check to see if bullet hit mob
@@ -171,21 +191,23 @@ while running:
     for hit in hits:
         score += 50 - hit.radius
         explosion_sound.play()
-        m = Mob()
-        all_sprites.add(m)
-        mobs.add(m)
+        newmob()
 
 
     # check to see if a mob hit the player
-    hits = pygame.sprite.spritecollide(player, mobs, False, pygame.sprite.collide_circle)
-    if hits:
-        running = False
+    hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
+    for hit in hits:
+        player.shield -= hit.radius
+        newmob()
+        if player.shield <= 0:
+            running = False
 
     # Draw / render
     screen.fill(BLACK)
     screen.blit(background,background_rect)
     all_sprites.draw(screen)
     draw_text (screen, str(score), 18, WIDTH /2, 10)
+    draw_shield_bar (screen, 5,5, player.shield)
     # *after* drawing everything, flip the display
     pygame.display.flip()
 
