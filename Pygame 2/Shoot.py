@@ -3,6 +3,7 @@ import random
 from os import path
 
 img_dir = path.join(path.dirname(__file__), 'img')
+snd_dir = path.join(path.dirname(__file__), 'Sound')
 
 WIDTH = 480
 HEIGHT = 600
@@ -40,7 +41,7 @@ class Player(pygame.sprite.Sprite):
                 self.image.set_colorkey(BLACK)
                 self.rect = self.image.get_rect()
                 self.radius = 20
-                pygame.draw.circle(self.image,RED,self.rect.center, self.radius)
+                #pygame.draw.circle(self.image,RED,self.rect.center, self.radius)
                 self.rect.centerx = WIDTH / 2
                 self.rect.bottom = HEIGHT - 10
                 self.speedx = 0
@@ -62,6 +63,7 @@ class Player(pygame.sprite.Sprite):
                 bullet = Bullet(self.rect.centerx, self.rect.top)
                 all_sprites.add(bullet)
                 bullets.add(bullet)
+                shoot_sound.play()
 
 class Mob (pygame.sprite.Sprite):
         def __init__(self):
@@ -71,7 +73,6 @@ class Mob (pygame.sprite.Sprite):
                 self.image = self.image_orig.copy()
                 self.rect = self.image.get_rect()
                 self.radius = int (self.rect.width *0.4)
-                pygame.draw.circle(self.image,RED,self.rect.center, self.radius)
                 self.rect.x = random.randrange (WIDTH - self.rect.width)
                 self.rect.y = random.randrange (-150, -100)
                 self.speedy = random.randrange (1,8)
@@ -117,7 +118,7 @@ class Bullet (pygame.sprite.Sprite):
                 if self.rect.bottom<0:
                         self.kill()
 
-#load all game graphics
+# Cargo los graficos del juego
 background = pygame.image.load(path.join(img_dir,"purple.png")).convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_rect = background.get_rect()
@@ -128,8 +129,11 @@ meteor_list =['meteorBrown_med1.png','Meteo2.png','Meteo3.png','Meteo4.png']
 for img in meteor_list:
         meteor_images.append(pygame.image.load(path.join(img_dir,img)).convert())
 
-
-
+# Cargo los sonidos del juego
+shoot_sound = pygame.mixer.Sound(path.join(snd_dir, 'Disparo_copado.wav'))
+explosion_sound = pygame.mixer.Sound(path.join(snd_dir, 'Explosion_copada.wav'))
+pygame.mixer.music.load (path.join(snd_dir,'Musica.mp3'))
+pygame.mixer.music.set_volume(0.4)
 
 
 
@@ -144,6 +148,8 @@ for i in range (8):
         all_sprites.add(m)
         mobs.add(m)
 score = 0
+
+pygame.mixer.music.play(-1)
 
 # Game loop
 running = True
@@ -164,6 +170,7 @@ while running:
     hits = pygame.sprite.groupcollide(mobs,bullets, True, True)
     for hit in hits:
         score += 50 - hit.radius
+        explosion_sound.play()
         m = Mob()
         all_sprites.add(m)
         mobs.add(m)
