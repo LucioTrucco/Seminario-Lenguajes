@@ -252,16 +252,17 @@ class Explosion (pygame.sprite.Sprite):
 def show_screen():
     if veces_jugado >= 1:
         screen.blit(background2,background_rect)
-
-    draw_text2(screen, "Galaxy Wars ", 64, WIDTH/2, HEIGHT / 4 )
-    draw_text3(screen, "Para moverte usa las flechas, dispara con la barra ", 22, WIDTH/2, HEIGHT / 2 )
-    draw_text3(screen, "Presiona el 1 para iniciar", 18, WIDTH / 2, HEIGHT * 3 /4)
-    draw_text3(screen, "Los truenos te ayudaran a disparar doble, y las cervezas a recuperar tu salud! ", 15, WIDTH/2, HEIGHT * 3.5/ 4 )
-    draw_text3(screen, "A medida que avances la dificultad aumentara", 15, WIDTH/2 -80, HEIGHT * 3.8/ 4 )
+    if veces_jugado == 0:
+        draw_text2(screen, "Galaxy Wars ", 64, WIDTH/2, HEIGHT / 4 )
+        draw_text3(screen, "Para moverte usa las flechas, dispara con la barra ", 22, WIDTH/2, HEIGHT / 2 )
+        draw_text3(screen, "Presiona el 1 para iniciar", 18, WIDTH / 2, HEIGHT * 3 /4)
+        draw_text3(screen, "Los truenos te ayudaran a disparar doble, y las cervezas a recuperar tu salud! ", 15, WIDTH/2, HEIGHT * 3.5/ 4 )
+        draw_text3(screen, "A medida que avances la dificultad aumentara", 15, WIDTH/2 -80, HEIGHT * 3.8/ 4 )
     if veces_jugado >= 1 :
         lose_sound.play()
-        draw_text3(screen, "Maximo score: ", 18, WIDTH * 3/ 4, HEIGHT / 8)
-        draw_text3(screen, str(max_score), 18, WIDTH * 3 / 4 + 87, HEIGHT /8)
+        draw_text3(screen, "Presiona el 1 para iniciar", 40, WIDTH / 2, HEIGHT * 3 /4)
+        draw_text3(screen, "Maximo score: ", 40, WIDTH / 2, HEIGHT / 8)
+        draw_text3(screen, str(max_score), 40, WIDTH * 3 / 4 -10, HEIGHT /8)
 
     pygame.display.flip()
     esperando_tecla = True
