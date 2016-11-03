@@ -23,15 +23,28 @@ YELLOW = (255,255,0)
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Shooter")
+pygame.display.set_caption("Galaxy Wars")
 clock = pygame.time.Clock()
 
 
 #Defino mi fuente para el SCORE
-font_name = pygame.font.match_font('Arial')
+font_name = pygame.font.match_font('Algerian')
+font_name2 = pygame.font.match_font ('Brodway')
 def draw_text (surf,text,size,x,y):
-        font = pygame.font.Font(font_name,size)
+        font = pygame.font.Font(font_name2,size)
         text_surface = font.render(text, True, WHITE)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x,y)
+        surf.blit  (text_surface, text_rect)
+def draw_text2 (surf,text,size,x,y):
+        font = pygame.font.Font(font_name,size)
+        text_surface = font.render(text, True, BLUE)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x,y)
+        surf.blit  (text_surface, text_rect)
+def draw_text3 (surf,text,size,x,y):
+        font = pygame.font.Font(font_name2,size)
+        text_surface = font.render(text, True, BLUE)
         text_rect = text_surface.get_rect()
         text_rect.midtop = (x,y)
         surf.blit  (text_surface, text_rect)
@@ -147,8 +160,8 @@ class Mob (pygame.sprite.Sprite):
                 self.radius = int (self.rect.width *0.4)
                 self.rect.x = random.randrange (WIDTH - self.rect.width)
                 self.rect.y = random.randrange (-150, -100)
-                self.speedy = random.randrange (1,8)
-                self.speedx = random.randrange (-3,3)
+                self.speedy = random.randrange (2 + medidor_dif,15 + medidor_dif)
+                self.speedx = random.randrange (-2,2)
                 self.rot = 0
                 self.rot_speed = random.randrange(-8, 8)
                 self.last_update = pygame.time.get_ticks()
@@ -235,10 +248,40 @@ class Explosion (pygame.sprite.Sprite):
                 self.rectr = self.image.get_rect()
                 self.rect.center = center
 
+ # defino un metodo para la pantalla principal
+def show_screen():
+    if veces_jugado >= 1:
+        screen.blit(background2,background_rect)
+
+    draw_text2(screen, "Galaxy Wars ", 64, WIDTH/2, HEIGHT / 4 )
+    draw_text3(screen, "Para moverte usa las flechas, dispara con la barra ", 22, WIDTH/2, HEIGHT / 2 )
+    draw_text3(screen, "Presiona el 1 para iniciar", 18, WIDTH / 2, HEIGHT * 3 /4)
+    draw_text3(screen, "Los truenos te ayudaran a disparar doble, y las cervezas a recuperar tu salud! ", 15, WIDTH/2, HEIGHT * 3.5/ 4 )
+    draw_text3(screen, "A medida que avances la dificultad aumentara", 15, WIDTH/2 -80, HEIGHT * 3.8/ 4 )
+    if veces_jugado >= 1 :
+        lose_sound.play()
+        draw_text3(screen, "Maximo score: ", 18, WIDTH * 3/ 4, HEIGHT / 8)
+        draw_text3(screen, str(max_score), 18, WIDTH * 3 / 4 + 87, HEIGHT /8)
+
+    pygame.display.flip()
+    esperando_tecla = True
+    while esperando_tecla:
+        clock.tick (FPS)
+        keystate = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP :
+                if keystate[pygame.K_1] or keystate[pygame.K_KP1] : 
+                    esperando_tecla = False
+                    pygame.mixer.music.play(-1)
+
 
 # Cargo los graficos del juego
 background = pygame.image.load(path.join(img_dir,"purple.png")).convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+background2 = pygame.image.load(path.join(img_dir, "background_2.jpg")).convert()
+background2 = pygame.transform.scale(background2, (WIDTH, HEIGHT))
 background_rect = background.get_rect()
 player_img = pygame.image.load(path.join(img_dir, "playerShip1_red.png")).convert()
 bullet_img = pygame.image.load(path.join(img_dir, "laserRed16.png")).convert()
@@ -275,6 +318,7 @@ powerup_images['gun'] = pygame.image.load(path.join(img_dir, 'PowerUp1.png')).co
 # Cargo los sonidos del juego
 shoot_sound = pygame.mixer.Sound(path.join(snd_dir, 'Disparo_copado.wav'))
 explosion_sound = pygame.mixer.Sound(path.join(snd_dir, 'Explosion_copada.wav'))
+lose_sound = pygame.mixer.Sound(path.join(snd_dir, 'Lose.wav'))
 muerte_sound = pygame.mixer.Sound(path.join(snd_dir, 'Muerte.wav'))
 shield_sound = pygame.mixer.Sound (path.join(snd_dir, 'Power1.wav'))
 power_sound = pygame.mixer.Sound (path.join(snd_dir, 'Power2.wav'))
@@ -283,25 +327,34 @@ pygame.mixer.music.set_volume(0.4)
 
 
 
-all_sprites = pygame.sprite.Group()
-mobs = pygame.sprite.Group()
-bullets = pygame.sprite.Group()
-powerups = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
 
-for i in range (8):
-        newmob()
-score = 0
 
 pygame.mixer.music.play(-1)
 contador_muertes = 0
+veces_jugado = 0
+max_score = 0
+medidor_dif = 0
 # Loop de juego
 running = True
+game_over = True
 while running:
+    if game_over:
+        show_screen()
+        game_over = False
+        all_sprites = pygame.sprite.Group()
+        mobs = pygame.sprite.Group()
+        bullets = pygame.sprite.Group()
+        powerups = pygame.sprite.Group()
+        player = Player()
+        all_sprites.add(player)
+
+        for i in range (8):
+                newmob()
+        score = 0
+
     # Mantengo el juego a una velocidad
     clock.tick(FPS)
-    # Process input (events)
+    # Creo un evento para que cuando toque la cruz cierre el juego
     for event in pygame.event.get():
         # check for closing window
         if event.type == pygame.QUIT:
@@ -312,6 +365,9 @@ while running:
     # Ver si la bala rompe el meteorito
     hits = pygame.sprite.groupcollide(mobs,bullets, True, True)
     for hit in hits:
+        if score >= medidor_dif * 500:
+            medidor_dif += 1
+            newmob()
         score += 50 - hit.radius
         explosion_sound.play()
         expl = Explosion(hit.rect.center, 'lg')
@@ -352,7 +408,12 @@ while running:
             
 
     if player.lives == 0 and not death_explosion.alive() :
-        running =  False
+        game_over = True
+        pygame.mixer.music.stop()
+        lose_sound.play()
+        veces_jugado = 1
+        if score >= max_score:
+            max_score = score
     # Draw / render
     screen.fill(BLACK)
     screen.blit(background,background_rect)
