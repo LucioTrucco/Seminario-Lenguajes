@@ -23,7 +23,7 @@ YELLOW = (255,255,0)
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Galaxy Wars")
+pygame.display.set_caption("GALAXY WARS")
 clock = pygame.time.Clock()
 
 
@@ -261,7 +261,7 @@ def show_screen():
     if veces_jugado >= 1 :
         lose_sound.play()
         draw_text3(screen, "Presiona el 1 para iniciar", 40, WIDTH / 2, HEIGHT * 3 /4)
-        draw_text3(screen, "Maximo score: ", 40, WIDTH / 2, HEIGHT / 8)
+        draw_text3(screen, "Maximo score: ", 40, WIDTH / 4, HEIGHT / 8)
         draw_text3(screen, str(max_score), 40, WIDTH * 3 / 4 -10, HEIGHT /8)
 
     pygame.display.flip()
@@ -373,7 +373,7 @@ while running:
         explosion_sound.play()
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
-        if random.random() >0.9:
+        if random.random() >0.92:
             pow = Pow(hit.rect.center)
             all_sprites.add(pow)
             powerups.add(pow)
