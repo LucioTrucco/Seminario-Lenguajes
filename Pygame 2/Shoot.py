@@ -2,7 +2,7 @@ import pygame
 import random
 from os import path
 
-# Creo los directorios para
+# Creo los directorios para carpetas
 img_dir = path.join(path.dirname(__file__), 'img')
 snd_dir = path.join(path.dirname(__file__), 'Sound')
 
@@ -27,9 +27,11 @@ pygame.display.set_caption("GALAXY WARS")
 clock = pygame.time.Clock()
 
 
-#Defino mi fuente para el SCORE
+# Defino mi fuente para el SCORE
 font_name = pygame.font.match_font('Algerian')
 font_name2 = pygame.font.match_font ('Brodway')
+
+#Funciones para dibujar texto (redundante)
 def draw_text (surf,text,size,x,y):
         font = pygame.font.Font(font_name2,size)
         text_surface = font.render(text, True, WHITE)
@@ -49,11 +51,13 @@ def draw_text3 (surf,text,size,x,y):
         text_rect.midtop = (x,y)
         surf.blit  (text_surface, text_rect)
 
+# Funcion pra generar meteoritos
 def newmob():
     m = Mob()
     all_sprites.add(m)
     mobs.add(m)
 
+# Funcion para la barra de vida
 def draw_shield_bar (surf,x,y,pct):
     if pct < 0:
         pct = 0
@@ -65,6 +69,7 @@ def draw_shield_bar (surf,x,y,pct):
     pygame.draw.rect(surf, GREEN, fill_rect)
     pygame.draw.rect (surf,WHITE, outline_rect, 2)
 
+# Funcion para mostrar las vidas
 def draw_lives (surf, x,y,lives,img):
     for i in range(lives):
         img_rect =  img.get_rect()
@@ -72,6 +77,8 @@ def draw_lives (surf, x,y,lives,img):
         img_rect.y = y
         surf.blit (img, img_rect)
 
+
+# Clase jugador
 class Player(pygame.sprite.Sprite):
         def __init__(self):
                 pygame.sprite.Sprite.__init__(self)
@@ -150,6 +157,7 @@ class Player(pygame.sprite.Sprite):
             self.hide_timer = pygame.time.get_ticks()
             self.rect.center = (WIDTH / 2, HEIGHT + 100)    
 
+# Clase jugador
 class Mob (pygame.sprite.Sprite):
         def __init__(self):
                 pygame.sprite.Sprite.__init__(self)
@@ -165,7 +173,7 @@ class Mob (pygame.sprite.Sprite):
                 self.rot = 0
                 self.rot_speed = random.randrange(-8, 8)
                 self.last_update = pygame.time.get_ticks()
-
+        # Hago rotar los meteoritos para que no parezca tan trabado
         def rotate(self):
                 now = pygame.time.get_ticks()
                 if now - self.last_update >50:
@@ -186,7 +194,7 @@ class Mob (pygame.sprite.Sprite):
                         self.rect.y = random.randrange (-100, -40)
                         self.speedy = random.randrange (1,8)
 
-
+# Genero la clase para las balas
 class Bullet (pygame.sprite.Sprite):
         def __init__(self, x, y):
                 pygame.sprite.Sprite.__init__(self)
@@ -202,7 +210,7 @@ class Bullet (pygame.sprite.Sprite):
                 # kill it if it moves off the top of the screen
                 if self.rect.bottom<0:
                         self.kill()
-
+# Genero la clase para los power up
 class Pow (pygame.sprite.Sprite):
         def __init__(self, center):
                 pygame.sprite.Sprite.__init__(self)
@@ -222,7 +230,7 @@ class Pow (pygame.sprite.Sprite):
                 if self.rect.top > HEIGHT:
                         self.kill()
 
-
+# Genero clase para las explosiones
 class Explosion (pygame.sprite.Sprite):
     def __init__ (self,center, size):
         pygame.sprite.Sprite.__init__(self)
@@ -329,7 +337,7 @@ pygame.mixer.music.set_volume(0.4)
 
 
 
-
+# Empiezo la musica al iniciar el juego y las variables que usare luego
 pygame.mixer.music.play(-1)
 contador_muertes = 0
 veces_jugado = 0
@@ -357,7 +365,7 @@ while running:
     clock.tick(FPS)
     # Creo un evento para que cuando toque la cruz cierre el juego
     for event in pygame.event.get():
-        # check for closing window
+        # Chequeo si quiere cerrar la ventana
         if event.type == pygame.QUIT:
             running = False
       
@@ -407,7 +415,7 @@ while running:
             if player.lives != 0:
                 player.shield = 100
             
-
+    # Veo si el jugador perdio
     if player.lives == 0 and not death_explosion.alive() :
         game_over = True
         pygame.mixer.music.stop()
@@ -415,14 +423,14 @@ while running:
         veces_jugado = 1
         if score >= max_score:
             max_score = score
-    # Draw / render
+    # Render del background y la pantalla en si
     screen.fill(BLACK)
     screen.blit(background,background_rect)
     all_sprites.draw(screen)
     draw_text (screen, str(score), 18, WIDTH /2, 10)
     draw_shield_bar (screen, 5,5, player.shield)
     draw_lives(screen, WIDTH - 100, 5, player.lives, vida_img_mini)
-    # *after* drawing everything, flip the display
+
     pygame.display.flip()
 
 pygame.quit()
